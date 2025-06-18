@@ -44,3 +44,6 @@ C:\Users\אלקנה סאסי\PaintClone\Paint\obj\Debug\net7.0-windows\refint\Cl
 C:\Users\אלקנה סאסי\PaintClone\Paint\obj\Debug\net7.0-windows\Client.pdb
 C:\Users\אלקנה סאסי\PaintClone\Paint\obj\Debug\net7.0-windows\Client.genruntimeconfig.cache
 C:\Users\אלקנה סאסי\PaintClone\Paint\obj\Debug\net7.0-windows\ref\Client.dll
+C:\Users\אלקנה סאסי\PaintClone\Paint\bin\Debug\net7.0-windows\SharedModels.dll
+C:\Users\אלקנה סאסי\PaintClone\Paint\bin\Debug\net7.0-windows\SharedModels.pdb
+C:\Users\אלקנה סאסי\PaintClone\Paint\obj\Debug\net7.0-windows\Client.csproj.CopyComplete

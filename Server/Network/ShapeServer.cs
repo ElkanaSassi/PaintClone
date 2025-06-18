@@ -1,11 +1,11 @@
-﻿using Client.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using SharedModels;
 
 namespace Server.Network
 {
@@ -43,6 +43,8 @@ namespace Server.Network
                 while (client.Connected)
                 {
                     // TODO: client massages handling.
+                    RequestInfo r = new RequestInfo();
+                    
                 }
             }
             catch (Exception ex)
