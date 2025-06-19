@@ -15,6 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+
 namespace Server
 {
     /// <summary>
@@ -35,17 +36,16 @@ namespace Server
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            string _canvasDirectory = "canvasSotredInServer";
-
-            if (!Directory.Exists(_canvasDirectory))
+            string canvasDir = LocalModels.LocalModels.canvasDirectory;
+            
+            if (!Directory.Exists(canvasDir))
             {
-                Directory.CreateDirectory(_canvasDirectory);
+                Directory.CreateDirectory(canvasDir);
             }
 
-            var files = Directory.GetFiles(_canvasDirectory, "*.json");
+            var files = Directory.GetFiles(canvasDir, "*.json");
 
             FileListBox.ItemsSource = files.Select(f => System.IO.Path.GetFileName(f));
-
 
         }
 

@@ -31,6 +31,11 @@ namespace Client.Network
             await _stream.WriteAsync(jsonBytes, 0, jsonBytes.Length);
         }
 
+        public async Task SendToServerAsync(RequestInfo request )
+        {
+
+        }
+
         public async Task<List<ShapeData>> ReceiveShapesAsync()
         {
             // TO DO
