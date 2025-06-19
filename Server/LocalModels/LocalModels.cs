@@ -8,6 +8,6 @@ namespace Server.LocalModels
 {
     public class LocalModels
     {
-        public const string canvasDirectory = "canvasSotredInServer";
+        public const string canvasDirectory = "canvasStoredInServer";
     }
 }

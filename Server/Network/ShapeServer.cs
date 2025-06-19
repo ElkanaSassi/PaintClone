@@ -113,6 +113,15 @@ namespace Server.Network
                         _ = SendResponseToClientAsync(response, clientStream);
                         break;
                     }
+                case MessageType.GetStoredFiles:
+                    {
+                        ResponseInfo response = new ResponseInfo();
+                        response.IsSuccess = true;
+                        response.Message = getStroedFilesInServer().ToString();
+
+                        _ = SendResponseToClientAsync(response, clientStream);
+                        break;
+                    }
                 default:
                     {
                         ResponseInfo response = new ResponseInfo { IsSuccess = false, Message = "ERROR: Unknow request!" };
@@ -120,6 +129,15 @@ namespace Server.Network
                         break;
                     }
             }
+        }
+        public List<string> getStroedFilesInServer()
+        {
+            string canvasDir = LocalModels.LocalModels.canvasDirectory;
+
+            var files = Directory.GetFiles(canvasDir, "*.json");
+            List<string> fileNames = files.Select(f => System.IO.Path.GetFileName(f)).ToList();
+
+            return fileNames;
         }
 
         public async Task SendResponseToClientAsync(ResponseInfo response, NetworkStream clientStream)

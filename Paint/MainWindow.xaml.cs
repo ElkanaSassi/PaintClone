@@ -1,24 +1,13 @@
 ﻿using Client.Network;
 using Client.Services;
-using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
-using SharedModels;
-using System.Windows.Controls.Primitives;
 using Client;
-using System.Text.Json;
 
 namespace Paint
 {
@@ -30,10 +19,13 @@ namespace Paint
         private string selectedShape = "Line";
         private Point startPoint;
         private Shape currentShape;
+        private ShapeClient client;
 
         public MainWindow()
         {
             InitializeComponent();
+            client = new ShapeClient(DrawingCanvas);
+
         }
 
         private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
@@ -123,16 +115,24 @@ namespace Paint
         }
 
 
-        private void LoadCanvasButton_Click(object sender, RoutedEventArgs e)
+        private async void LoadCanvasButton_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: give the clinet the file names from the server to choose from.
+            var dialog = new LoadDialog(client);
+            dialog.Owner = this;
 
+            bool? result = dialog.ShowDialog();
 
-            var jsonString = ""; // get the json presentation from server.
-            var shapes = JsonSerializer.Deserialize<List<ShapeData>>(jsonString);
+            if (result == true)
+            {
+                await client.sendFlieRequestAsync(dialog.FileName);
 
-            ShapeSerializer.LoadFromJson(DrawingCanvas, shapes);
+                await client.ReceiveShapesAsync();
 
+            }
+            else
+            {
+                // LoadDialog was closed
+            }
         }
 
         private async void UploadButton_Click(object sender, RoutedEventArgs e)
@@ -140,10 +140,9 @@ namespace Paint
             var dialog = new UploadDialog();
             dialog.Owner = this;  
 
-            bool result = (bool)dialog.ShowDialog();
+            bool? result = dialog.ShowDialog();
 
-            // checking file name validation 
-            if (result == true)
+            if (result == true && client.FileNameValidation(dialog.FileName))
             {
                 
                 MessageBox.Show("File name '" + dialog.FileName + "' was accepted!");
@@ -154,8 +153,8 @@ namespace Paint
                 .ToList();
 
                 // TODO: make the massage contain all the shapes with the valid file name.
+                // send file name, and then shapes.
 
-                var client = new ShapeClient();
                 await client.SendShapesAsync(shapes); // TODO: need fixing.
 
                 MessageBox.Show("Shapes sent to server.");
@@ -164,7 +163,6 @@ namespace Paint
             {
                 MessageBox.Show($"File name '" + dialog.FileName + "' was rejected! Try a different name.");
             }
-
         }
 
         private void LineButton_Click(object sender, RoutedEventArgs e) => selectedShape = "Line";

@@ -68,12 +68,11 @@ namespace Client.Services
 
         public static ShapeData ConvertShapeToData(Shape shape)
         {
-            var data = new ShapeData
-            {
-                ShapeType = shape.GetType().Name,
-                StrokeColor = "#000000", // suporting just black for now
-                StrokeThickness = shape.StrokeThickness
-            };
+            ShapeData data = new ShapeData();
+
+            data.ShapeType = shape.GetType().Name;
+            data.StrokeColor = "#000000"; // suporting just black for now
+            data.StrokeThickness = shape.StrokeThickness;
 
             if (shape is Line line)
             {

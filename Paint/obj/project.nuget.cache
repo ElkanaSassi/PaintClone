@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "/H3WM4TaD/HflWJOwjqoFTNBBcENVB60ywHZEFOwzsghcoDPF85SUIihwJLQ8PLsIA/ARiQKg/gAji24F5Yx1w==",
+  "dgSpecHash": "/YqMhuaO1PQ86CylA5afdm4rdOA+Anv+Nv/ag7/iIyDk2j0QwIrXamE/ohSgalYKQ56XgE8nqUBA+/XD1ECYvg==",
   "success": true,
   "projectFilePath": "C:\\Users\\אלקנה סאסי\\PaintClone\\Paint\\Client.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\אלקנה סאסי\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512"
+  ],
   "logs": []
 }

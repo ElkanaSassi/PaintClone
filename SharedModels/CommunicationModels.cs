@@ -4,7 +4,8 @@
     {
         LoadCanvas,
         UploadCanvas,
-        FileNameValidation
+        FileNameValidation,
+        GetStoredFiles
     }
 
     public class RequestInfo

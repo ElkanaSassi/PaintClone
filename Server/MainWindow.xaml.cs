@@ -32,19 +32,20 @@ namespace Server
 
             _cancellationTokenSource = new CancellationTokenSource();
             _serverTask = StartServerAsync(_cancellationTokenSource.Token);
+
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             string canvasDir = LocalModels.LocalModels.canvasDirectory;
-            
-            if (!Directory.Exists(canvasDir))
+            string fullPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, canvasDir);
+
+            if (!Directory.Exists(fullPath))
             {
-                Directory.CreateDirectory(canvasDir);
+                Directory.CreateDirectory(fullPath);
             }
 
-            var files = Directory.GetFiles(canvasDir, "*.json");
-
+            var files = Directory.GetFiles(fullPath, "*.json");
             FileListBox.ItemsSource = files.Select(f => System.IO.Path.GetFileName(f));
 
         }
