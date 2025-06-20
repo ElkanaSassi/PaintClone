@@ -35,42 +35,42 @@ namespace Paint
             switch (selectedShape)
             {
                 case "Line":
+                {
+                    currentShape = new Line
                     {
-                        currentShape = new Line
-                        {
-                            X1 = startPoint.X,
-                            Y1 = startPoint.Y,
-                            X2 = startPoint.X,
-                            Y2 = startPoint.Y,
-                            Stroke = Brushes.Black,
-                            StrokeThickness = 2
-                        };
-                        break;
-                    }
+                        X1 = startPoint.X,
+                        Y1 = startPoint.Y,
+                        X2 = startPoint.X,
+                        Y2 = startPoint.Y,
+                        Stroke = Brushes.Black,
+                        StrokeThickness = 2
+                    };
+                    break;
+                }
 
                 case "Rectangle":
+                { 
+                    currentShape = new Rectangle
                     {
-                        currentShape = new Rectangle
-                        {
-                            Stroke = Brushes.Black,
-                            StrokeThickness = 2
-                        };
-                        Canvas.SetLeft(currentShape, startPoint.X);
-                        Canvas.SetTop(currentShape, startPoint.Y);
-                        break;
-                    }
+                        Stroke = Brushes.Black,
+                        StrokeThickness = 2
+                    };
+                    Canvas.SetLeft(currentShape, startPoint.X);
+                    Canvas.SetTop(currentShape, startPoint.Y);
+                    break;
+                }
 
                 case "Circle":
+                {
+                    currentShape = new Ellipse
                     {
-                        currentShape = new Ellipse
-                        {
-                            Stroke = Brushes.Black,
-                            StrokeThickness = 2
-                        };
-                        Canvas.SetLeft(currentShape, startPoint.X);
-                        Canvas.SetTop(currentShape, startPoint.Y);
-                        break;
-                    }
+                        Stroke = Brushes.Black,
+                        StrokeThickness = 2
+                    };
+                    Canvas.SetLeft(currentShape, startPoint.X);
+                    Canvas.SetTop(currentShape, startPoint.Y);
+                    break;
+                }
             }
 
             if (currentShape != null)
@@ -134,7 +134,7 @@ namespace Paint
                 // LoadDialog was closed
             }
         }
-    
+
         private async void UploadButton_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new UploadDialog();
@@ -152,9 +152,10 @@ namespace Paint
                 .Select(s => ShapeSerializer.ConvertShapeToData(s)) // for each type geting json presentation
                 .ToList();
 
-                // TODO: send file name, and then shapes.
+                // TODO: make the massage contain all the shapes with the valid file name.
+                // send file name, and then shapes.
 
-                await client.SendShapesAsync(shapes);
+                await client.SendShapesAsync(shapes); // TODO: need fixing.
 
                 MessageBox.Show("Shapes sent to server.");
             }

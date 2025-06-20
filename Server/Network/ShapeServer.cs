@@ -99,7 +99,7 @@ namespace Server.Network
                     }
                 case MessageType.UploadCanvas:
                     {
-
+                        string fileName = Encoding.ASCII.GetString(requestInfo.Data);
 
                         break;
                     }
