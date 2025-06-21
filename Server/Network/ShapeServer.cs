@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http.Json;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using System.Windows.Markup;
 using SharedModels;
 
 namespace Server.Network
@@ -20,9 +18,9 @@ namespace Server.Network
         private readonly List<TcpClient> _clients = new List<TcpClient>();
         private static List<string> _openFiles = new();
 
-        public ShapeServer(string ipAddress = "127.0.0.1", int port = 1008)
+        public ShapeServer(string ipAddress = "127.0.0.1", int port = 3035)
         {
-            _listener = new TcpListener(IPAddress.Parse(ipAddress), port);
+            _listener = new TcpListener(IPAddress.Parse(ipAddress), port); // at the moment only localhost
             Console.WriteLine($"Server started on port {port}...");
         }
 
@@ -99,8 +97,16 @@ namespace Server.Network
                     }
                 case MessageType.UploadCanvas:
                     {
-                        string fileName = Encoding.ASCII.GetString(requestInfo.Data);
+                        // -the data strcture of Upload request-
+                        // 0-4 -> bytes of Data = file name.
+                        // 4-END -> shapes in Json presentation. 
+                        string fileName = Encoding.ASCII.GetString(requestInfo.Data.Take(4).ToArray());
+                        string shapeData = Encoding.ASCII.GetString(requestInfo.Data.Skip(4).ToArray());
 
+                        ResponseInfo response = storeShapesInServer(fileName, shapeData);
+                        ServerLogger.Log(requestInfo.MessageType, requestInfo.From, response.IsSuccess);
+
+                        _ = SendResponseToClientAsync(response, clientStream);
                         break;
                     }
                 case MessageType.FileNameValidation:
@@ -117,7 +123,8 @@ namespace Server.Network
                     {
                         ResponseInfo response = new ResponseInfo();
                         response.IsSuccess = true;
-                        response.Message = getStroedFilesInServer().ToString();
+                        response.Message = string.Join(",", requestInfo.Data);
+                        ServerLogger.Log(requestInfo.MessageType, requestInfo.From, response.IsSuccess);
 
                         _ = SendResponseToClientAsync(response, clientStream);
                         break;
@@ -130,12 +137,34 @@ namespace Server.Network
                     }
             }
         }
+
+        public ResponseInfo storeShapesInServer(string fileName, string shapes) 
+        {
+            try
+            {
+                // copmlete relative path
+                string completePath = Path.Combine(LocalModels.LocalModels.canvasDirectory, fileName);
+
+                using (FileStream Shapesfile = File.Create(completePath))
+                {
+                    Shapesfile.Write(Encoding.UTF8.GetBytes(shapes));
+                }
+
+                return new ResponseInfo { IsSuccess = true, Message = "Shapes were successfully stored!!!" };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseInfo {IsSuccess = false, Message = "Error occurred in the file storage procedure!" };
+            }
+
+        }
+
         public List<string> getStroedFilesInServer()
         {
             string canvasDir = LocalModels.LocalModels.canvasDirectory;
 
             var files = Directory.GetFiles(canvasDir, "*.json");
-            List<string> fileNames = files.Select(f => System.IO.Path.GetFileName(f)).ToList();
+            List<string> fileNames = files.Select(f => Path.GetFileName(f)).ToList();
 
             return fileNames;
         }

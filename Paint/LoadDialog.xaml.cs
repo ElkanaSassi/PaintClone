@@ -31,9 +31,9 @@ namespace Client
             _client = client;
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            var files = _client.GetStoredFilesInServer();
+            var files = await _client.GetStoredFilesInServer();
 
             FileListBox.ItemsSource = files.Select(f => System.IO.Path.GetFileName(f));
         }

@@ -127,7 +127,6 @@ namespace Paint
                 await client.sendFlieRequestAsync(dialog.FileName);
 
                 await client.ReceiveShapesAsync();
-
             }
             else
             {

@@ -19,7 +19,7 @@ namespace Client.Network
         private readonly NetworkStream _stream;
         private Canvas _canvas;
 
-        public ShapeClient(Canvas canvas, string serverIp = "127.0.0.1", int port = 1008)
+        public ShapeClient(Canvas canvas, string serverIp = "127.0.0.1", int port = 3035)
         {
             _canvas = canvas;
             _client = new TcpClient();
@@ -46,7 +46,39 @@ namespace Client.Network
             byte[] lengthBytes = BitConverter.GetBytes(responedLength);
 
             await _stream.WriteAsync(lengthBytes, 0, lengthBytes.Length);
-            await _stream.WriteAsync(JsonAsBytes, 0, JsonAsBytes.Length);
+            await _stream.WriteAsync(JsonAsBytes, 0, JsonAsBytes.Length);    
+        }
+
+        public async Task<ResponseInfo> GetResponseFromServer()
+        {
+            // geting massage length
+            byte[] lengthBuffer = new byte[4];
+            await _stream.ReadExactlyAsync(lengthBuffer, 0, 4);
+            int messageLength = BitConverter.ToInt32(lengthBuffer, 0);
+
+            // read exactly that many bytes
+            byte[] messageBuffer = new byte[messageLength];
+            await _stream.ReadExactlyAsync(messageBuffer, 0, messageLength);
+
+            ResponseInfo responseInfo = JsonSerializer.Deserialize<ResponseInfo>(messageBuffer);
+
+            return responseInfo;
+        }
+
+        public async Task<List<string>> GetStoredFilesInServer()
+        {
+            RequestInfo request = new RequestInfo();
+            request.MessageType = MessageType.GetStoredFiles;
+            request.From = _client.Client.RemoteEndPoint.ToString();
+            request.Data = null;
+
+            _ = SendRequestToServerAsync(request);
+
+            ResponseInfo response = await GetResponseFromServer();
+
+            List<string> fileNames = response.Message.Split(',').ToList();
+
+            return fileNames;
         }
 
         public async Task sendFlieRequestAsync(string fileName)
@@ -73,27 +105,6 @@ namespace Client.Network
             List<ShapeData> shapes = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ShapeData>>(messageAsString);
 
             ShapeSerializer.LoadFromJson(_canvas, shapes);
-        }
-
-        public List<string> GetStoredFilesInServer()
-        {
-            RequestInfo request = new RequestInfo();
-            request.MessageType = MessageType.GetStoredFiles;
-            request.From = _client.Client.RemoteEndPoint.ToString();
-            request.Data = null;
-
-            _ = SendRequestToServerAsync(request);
-
-            // geting massage length
-            byte[] lengthBuffer = new byte[4];
-            _stream.ReadExactlyAsync(lengthBuffer, 0, 4);
-            int messageLength = BitConverter.ToInt32(lengthBuffer, 0);
-
-            // read exactly that many bytes
-            byte[] messageBuffer = new byte[messageLength];
-            _stream.ReadExactlyAsync(messageBuffer, 0, messageLength);
-
-            return null;
         }
 
         public bool FileNameValidation(string fileName)
