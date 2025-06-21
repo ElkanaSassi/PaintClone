@@ -51,6 +51,7 @@ namespace Client.Network
 
         public async Task<ResponseInfo> GetResponseFromServer()
         {
+            
             // geting massage length
             byte[] lengthBuffer = new byte[4];
             await _stream.ReadExactlyAsync(lengthBuffer, 0, 4);

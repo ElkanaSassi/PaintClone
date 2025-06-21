@@ -123,7 +123,7 @@ namespace Server.Network
                     {
                         ResponseInfo response = new ResponseInfo();
                         response.IsSuccess = true;
-                        response.Message = string.Join(",", requestInfo.Data);
+                        response.Message = string.Join(",", getStroedFilesInServer());
                         ServerLogger.Log(requestInfo.MessageType, requestInfo.From, response.IsSuccess);
 
                         _ = SendResponseToClientAsync(response, clientStream);
