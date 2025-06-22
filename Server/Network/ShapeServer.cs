@@ -108,7 +108,6 @@ namespace Server.Network
                     requestInfo = JsonSerializer.Deserialize<RequestInfo>(messageBuffer);
 
                     await HandleRequestAsync(requestInfo, stream);
-
                 }
             }
             catch (Exception ex)
@@ -117,8 +116,11 @@ namespace Server.Network
             }
             finally
             {
-                _clients.Remove(client);
-                client.Close();
+                lock (_clients)
+                {
+                    _clients.Remove(client);
+                    client.Close();
+                }
             }
         }
 
@@ -236,12 +238,21 @@ namespace Server.Network
                 }
                 // if we got here,
                 // the requested file is not in use.
-                using (StreamReader Shapesfile = new StreamReader(fileName))
-                {
 
-                    _openFiles.Add(fileName);
-                    return new ResponseInfo { IsSuccess = true, Message = "File opened successfully.", Data = Encoding.UTF8.GetBytes(Shapesfile.ReadToEnd())};
+                string completePath = Path.Combine(LocalModels.LocalModels.canvasDirectory, fileName);
+                if (File.Exists(completePath))
+                {
+                    using (StreamReader Shapesfile = new StreamReader(completePath))
+                    {
+                        _openFiles.Add(fileName);
+                        return new ResponseInfo { IsSuccess = true, Message = "File opened successfully.", Data = Encoding.UTF8.GetBytes(Shapesfile.ReadToEnd()) };
+                    }
                 }
+                else
+                {
+                    return new ResponseInfo { IsSuccess = false, Message = "ERROR: file is missing." };
+                }
+                
             }
         }
 

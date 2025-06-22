@@ -115,7 +115,7 @@ namespace Client.Network
             byte[] messageBuffer = new byte[messageLength];
             await _stream.ReadExactlyAsync(messageBuffer, 0, messageLength);
             string messageAsString = Encoding.UTF8.GetString(messageBuffer);
-
+            
             ResponseInfo response = JsonSerializer.Deserialize<ResponseInfo>(messageAsString);
 
             List<ShapeData> shapes = JsonSerializer.Deserialize<List<ShapeData>>(response.Data);
