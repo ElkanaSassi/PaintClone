@@ -13,19 +13,17 @@ namespace Server
     /// </summary>
     public partial class MainWindow : Window
     {
-        private CancellationTokenSource _cancellationTokenSource;
-        private Task _serverTask;
+        private ShapeServer _server = new ShapeServer();
+        private FileSystemWatcher _watcher;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            _cancellationTokenSource = new CancellationTokenSource();
-            _serverTask = StartServerAsync(_cancellationTokenSource.Token);
-
+            _ = _server.StartAsync();
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private void Load_ListBox_Files(object sender, RoutedEventArgs e)
         {
             string canvasDir = LocalModels.LocalModels.canvasDirectory;
             string fullPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, canvasDir);
@@ -35,44 +33,35 @@ namespace Server
                 Directory.CreateDirectory(fullPath);
             }
 
-            var files = Directory.GetFiles(fullPath, "*.json");
-            FileListBox.ItemsSource = files.Select(f => System.IO.Path.GetFileName(f));
+            LoadFiles(fullPath);
 
+            _watcher = new FileSystemWatcher(fullPath, "*.json")
+            {
+                NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite,
+                EnableRaisingEvents = true
+            };
+
+            _watcher.Created += OnFolderChanged;
+            _watcher.Deleted += OnFolderChanged;
+            _watcher.Renamed += OnFolderChanged;
+
+            _watcher.EnableRaisingEvents = true;
         }
 
-        private async Task StartServerAsync(CancellationToken token)
+        private void OnFolderChanged(object sender, FileSystemEventArgs e)
         {
-            try
-            {
-                var server = new ShapeServer();
-                await server.StartAsync();
+            Dispatcher.Invoke(() => LoadFiles(_watcher.Path));
+        }
 
-                while (!token.IsCancellationRequested)
-                {
-                    Console.WriteLine("Server running...");
-                    await Task.Delay(1000, token); // checks for CancellationToken every 1 second.
-                }
-            }
-            catch (TaskCanceledException)
-            {
-                Console.WriteLine("Server task cancelled.");
-            }
-            finally
-            {
-                Console.WriteLine("Server stopped.");
-            }
+        private void LoadFiles(string folderPath)
+        {
+            var files = Directory.GetFiles(folderPath, "*.json");
+            FileListBox.ItemsSource = files.Select(f => System.IO.Path.GetFileName(f)).ToList();
         }
 
         private async void Suspend_Click(object sender, RoutedEventArgs e)
         {
-            if (_cancellationTokenSource != null)
-            {
-                _cancellationTokenSource.Cancel();
-                await _serverTask; // wait for the server to fully stop before disposing
-                _cancellationTokenSource.Dispose();
-                _cancellationTokenSource = null;
-                _serverTask = null;
-            }
+            _ = _server.StopAsync();
         }
     }
 }

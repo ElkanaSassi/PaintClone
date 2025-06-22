@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using SharedModels;
 
@@ -14,7 +15,8 @@ namespace Server.Network
 {
     public class ShapeServer
     {
-        private readonly TcpListener _listener;
+        private readonly TcpListener _listener; 
+        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
         private readonly List<TcpClient> _clients = new List<TcpClient>();
         private static List<string> _openFiles = new();
 
@@ -27,15 +29,55 @@ namespace Server.Network
         public async Task StartAsync()
         {
             _listener.Start();
-            while (true)
+            var token = _cts.Token; 
+
+            try
             {
-                var client = await _listener.AcceptTcpClientAsync();
-                Console.WriteLine("Client connected.");
+                while (!token.IsCancellationRequested)
+                {
+                    var client = await _listener.AcceptTcpClientAsync(token);
+                    Console.WriteLine("Client connected.");
 
-                _clients.Add(client);
+                    lock (_clients)
+                    {
+                        _clients.Add(client);
+                    }
 
-                // handle client in a new task to allow server to accept more clients
-                _ = HandleClientAsync(client);
+                    _ = HandleClientAsync(client);
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                Console.WriteLine("Server stopping, cancellation requested.");
+            }
+            finally
+            {
+                _listener.Stop();
+                Console.WriteLine("Server stopped.");
+            }
+        }
+
+        public async Task StopAsync()
+        {
+            if (!_cts.IsCancellationRequested)
+            {
+                _cts.Cancel();
+            }
+
+            lock (_clients)
+            {
+                foreach (var client in _clients)
+                {
+                    try
+                    {
+                        client.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error closing a client: {ex.Message}");
+                    }
+                }
+                _clients.Clear();
             }
         }
 
@@ -86,7 +128,7 @@ namespace Server.Network
             {
                 case MessageType.LoadCanvas:
                     {
-                        // TODO: needs to add a way to know when client stop loading one of the canvases. to unlock it...
+                        // TODO: needs to add a way to know when client stop loading one of the canvases. to "unlock" it...
                         string fileName = Encoding.ASCII.GetString(requestInfo.Data);
 
                         ResponseInfo response = GetShapesFromFile(fileName);
