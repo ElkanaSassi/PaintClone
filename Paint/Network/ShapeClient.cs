@@ -106,6 +106,7 @@ namespace Client.Network
 
         public async Task ReceiveShapesAsync()
         {
+            // geting massage length
             byte[] lengthBuffer = new byte[4];
             await _stream.ReadExactlyAsync(lengthBuffer, 0, 4);
             int messageLength = BitConverter.ToInt32(lengthBuffer, 0);
@@ -115,7 +116,9 @@ namespace Client.Network
             await _stream.ReadExactlyAsync(messageBuffer, 0, messageLength);
             string messageAsString = Encoding.UTF8.GetString(messageBuffer);
 
-            List<ShapeData> shapes = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ShapeData>>(messageAsString);
+            ResponseInfo response = JsonSerializer.Deserialize<ResponseInfo>(messageAsString);
+
+            List<ShapeData> shapes = JsonSerializer.Deserialize<List<ShapeData>>(response.Data);
 
             ShapeSerializer.LoadFromJson(_canvas, shapes);
         }

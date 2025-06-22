@@ -94,9 +94,11 @@
                 </Grid.RowDefinitions>
 
                 <Button Content="Line"
+                        x:Name="lineButton"
                         Click="LineButton_Click"
                         FontStyle="Italic"
                         Style="{DynamicResource RoundCorners}" 
+                        Opacity="0.3"
                         Height="75"
                         Width="100"
                         HorizontalAlignment="Center"
@@ -106,6 +108,7 @@
                         Click="RectangleButton_Click"
                         FontStyle="Italic"
                         Style="{DynamicResource RoundCorners}" 
+                        Opacity="0.3"
                         Height="75"
                         Width="100"
                         HorizontalAlignment="Center"
@@ -115,6 +118,7 @@
                         Click="CircleButton_Click"
                         FontStyle="Italic"
                         Style="{DynamicResource RoundCorners}" 
+                        Opacity="0.3"
                         Height="75"
                         Width="100"
                         HorizontalAlignment="Center"

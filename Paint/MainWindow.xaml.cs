@@ -21,12 +21,15 @@ namespace Paint
         private Point startPoint;
         private Shape currentShape;
         private ShapeClient client;
+        private Button _selectedShapeButton;
 
         public MainWindow()
         {
             InitializeComponent();
             client = new ShapeClient(DrawingCanvas);
 
+            lineButton.Opacity = 1;
+            _selectedShapeButton = lineButton;
         }
 
         private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
@@ -166,9 +169,37 @@ namespace Paint
             }
         }
 
-        private void LineButton_Click(object sender, RoutedEventArgs e) => selectedShape = "Line";
-        private void RectangleButton_Click(object sender, RoutedEventArgs e) => selectedShape = "Rectangle";
-        private void CircleButton_Click(object sender, RoutedEventArgs e) => selectedShape = "Circle";
-        private void ClearButton_Click(object sender, RoutedEventArgs e) => ClearCanvas();
+        private void LineButton_Click(object sender, RoutedEventArgs e)
+        {
+            selectedShape = "Line";
+            HighlightSelectedButton(sender as Button);
+        }
+
+        private void RectangleButton_Click(object sender, RoutedEventArgs e)
+        {
+            selectedShape = "Rectangle";
+            HighlightSelectedButton(sender as Button);
+        }
+
+        private void CircleButton_Click(object sender, RoutedEventArgs e)
+        {
+            selectedShape = "Circle";
+            HighlightSelectedButton(sender as Button);
+        }
+
+        private void ClearButton_Click(object sender, RoutedEventArgs e)
+        {
+            ClearCanvas();
+        }
+
+        private void HighlightSelectedButton(Button clickedButton)
+        {
+            if (_selectedShapeButton != null)
+                _selectedShapeButton.Opacity = 0.3;
+
+            _selectedShapeButton = clickedButton;
+            _selectedShapeButton.Opacity = 1;
+        }
+
     }
 }

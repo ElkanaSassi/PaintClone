@@ -89,7 +89,7 @@ namespace Server.Network
                         // TODO: needs to add a way to know when client stop loading one of the canvases. to unlock it...
                         string fileName = Encoding.ASCII.GetString(requestInfo.Data);
 
-                        ResponseInfo response = TryOpenFile(fileName);
+                        ResponseInfo response = GetShapesFromFile(fileName);
                         ServerLogger.Log(requestInfo.MessageType ,requestInfo.From, response.IsSuccess);
 
                         await SendResponseToClientAsync(response, clientStream);
@@ -105,7 +105,7 @@ namespace Server.Network
                         string fileName = Encoding.ASCII.GetString(requestInfo.Data, 4, fileNameLength);
                         string shapeData = Encoding.ASCII.GetString(requestInfo.Data.Skip(4 + fileNameLength).ToArray());
 
-                        ResponseInfo response = storeShapesInServer(fileName, shapeData);
+                        ResponseInfo response = StoreShapesInServer(fileName, shapeData);
                         ServerLogger.Log(requestInfo.MessageType, requestInfo.From, response.IsSuccess);
 
                         await SendResponseToClientAsync(response, clientStream);
@@ -125,7 +125,7 @@ namespace Server.Network
                     {
                         ResponseInfo response = new ResponseInfo();
                         response.IsSuccess = true;
-                        response.Message = string.Join(",", getStroedFilesInServer());
+                        response.Message = string.Join(",", GetStroedFilesInServer());
                         ServerLogger.Log(requestInfo.MessageType, requestInfo.From, response.IsSuccess);
 
                         await SendResponseToClientAsync(response, clientStream);
@@ -140,12 +140,12 @@ namespace Server.Network
             }
         }
 
-        public ResponseInfo storeShapesInServer(string fileName, string shapes) 
+        public ResponseInfo StoreShapesInServer(string fileName, string shapes) 
         {
             try
             {
                 // copmlete relative path
-                string completePath = Path.Combine(LocalModels.LocalModels.canvasDirectory, fileName , ".json");
+                string completePath = Path.Combine(LocalModels.LocalModels.canvasDirectory, fileName + ".json");
 
                 using (FileStream Shapesfile = File.Create(completePath))
                 {
@@ -161,7 +161,7 @@ namespace Server.Network
 
         }
 
-        public List<string> getStroedFilesInServer()
+        public List<string> GetStroedFilesInServer()
         {
             string canvasDir = LocalModels.LocalModels.canvasDirectory;
 
@@ -183,8 +183,9 @@ namespace Server.Network
             await clientStream.WriteAsync(JsonAsBytes, 0, JsonAsBytes.Length);
         }
 
-        public ResponseInfo TryOpenFile(string fileName)
+        public ResponseInfo GetShapesFromFile(string fileName)
         {
+            // if file is lock = a different client is currently working on the same file.
             lock (_openFiles)
             {
                 if (_openFiles.Contains(fileName))
@@ -192,9 +193,13 @@ namespace Server.Network
                     return new ResponseInfo { IsSuccess = false, Message = "ERROR: File is already open by another client."};
                 }
                 // if we got here,
-                // the requested file is not in loaded.
-                _openFiles.Add(fileName);
-                return new ResponseInfo { IsSuccess = true, Message = "File opened successfully." };
+                // the requested file is not in use.
+                using (StreamReader Shapesfile = new StreamReader(fileName))
+                {
+
+                    _openFiles.Add(fileName);
+                    return new ResponseInfo { IsSuccess = true, Message = "File opened successfully.", Data = Encoding.UTF8.GetBytes(Shapesfile.ReadToEnd())};
+                }
             }
         }
 
