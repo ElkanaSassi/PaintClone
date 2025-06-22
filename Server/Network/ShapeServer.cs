@@ -43,11 +43,11 @@ namespace Server.Network
         {
             try
             {
+                await using NetworkStream stream = client.GetStream();
+
                 while (client.Connected)
                 { // TODO: client massages handling.
-                    await using NetworkStream stream = client.GetStream();
                     RequestInfo requestInfo = new RequestInfo();
-
                     /* client stream decomposed
                         first 4 bytes - the length of the massage in bytes.
                         after we have the length, we read from the stream exactly that many bytes. 
@@ -145,7 +145,7 @@ namespace Server.Network
             try
             {
                 // copmlete relative path
-                string completePath = Path.Combine(LocalModels.LocalModels.canvasDirectory, fileName);
+                string completePath = Path.Combine(LocalModels.LocalModels.canvasDirectory, fileName , ".json");
 
                 using (FileStream Shapesfile = File.Create(completePath))
                 {
