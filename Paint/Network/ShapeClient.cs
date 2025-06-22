@@ -27,14 +27,27 @@ namespace Client.Network
             _stream = _client.GetStream();
         }
 
-        public async Task SendShapesAsync(List<ShapeData> shapes)
+        public async Task SendShapesAsync(List<ShapeData> shapes, string fileName)
         {
-            var json = JsonSerializer.Serialize(shapes);
-            byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
-            byte[] lengthPrefix = BitConverter.GetBytes(jsonBytes.Length);
+            byte[] fileNameBytes = Encoding.UTF8.GetBytes(fileName);
+            byte[] fileNameLengthBytes = BitConverter.GetBytes(fileNameBytes.Length);
 
-            await _stream.WriteAsync(lengthPrefix, 0, 4);
-            await _stream.WriteAsync(jsonBytes, 0, jsonBytes.Length);
+            string shapeJson = JsonSerializer.Serialize(shapes);
+            byte[] shapeJsonBytes = Encoding.UTF8.GetBytes(shapeJson);
+
+            // build the complete message. [file name length + file name + shape json]
+            byte[] completeMessage = new byte[4 + fileNameBytes.Length + shapeJsonBytes.Length];
+            Buffer.BlockCopy(fileNameLengthBytes, 0, completeMessage, 0, 4); // file name length
+            Buffer.BlockCopy(fileNameBytes, 0, completeMessage, 4, fileNameBytes.Length); // file name in bytes
+            Buffer.BlockCopy(shapeJsonBytes, 0, completeMessage, 4 + fileNameBytes.Length, shapeJsonBytes.Length); // shape json in bytes
+
+            RequestInfo request = new RequestInfo();
+            request.MessageType = MessageType.UploadCanvas;
+            request.From = _client.Client.RemoteEndPoint.ToString();
+            request.Data = completeMessage;
+
+            _ = SendRequestToServerAsync(request);
+
         } 
         
         public async Task SendRequestToServerAsync(RequestInfo request)
@@ -51,7 +64,6 @@ namespace Client.Network
 
         public async Task<ResponseInfo> GetResponseFromServer()
         {
-            
             // geting massage length
             byte[] lengthBuffer = new byte[4];
             await _stream.ReadExactlyAsync(lengthBuffer, 0, 4);
@@ -108,7 +120,7 @@ namespace Client.Network
             ShapeSerializer.LoadFromJson(_canvas, shapes);
         }
 
-        public bool FileNameValidation(string fileName)
+        public async Task<bool> FileNameValidation(string fileName)
         {
             RequestInfo request = new RequestInfo();
 
@@ -120,17 +132,16 @@ namespace Client.Network
 
             // geting massage length
             byte[] lengthBuffer = new byte[4];
-            _stream.ReadExactlyAsync(lengthBuffer, 0, 4);
+            await _stream.ReadExactlyAsync(lengthBuffer, 0, 4);
             int messageLength = BitConverter.ToInt32(lengthBuffer, 0);
 
             // read exactly that many bytes
             byte[] messageBuffer = new byte[messageLength];
-            _stream.ReadExactlyAsync(messageBuffer, 0, messageLength);
+            await _stream.ReadExactlyAsync(messageBuffer, 0, messageLength);
 
             ResponseInfo response = JsonSerializer.Deserialize<ResponseInfo>(messageBuffer);
 
             return response.IsSuccess;
-
         }
 
         public void Close()

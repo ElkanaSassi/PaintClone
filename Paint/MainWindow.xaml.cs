@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using Client;
+using SharedModels;
 
 namespace Paint
 {
@@ -141,7 +142,7 @@ namespace Paint
 
             bool? result = dialog.ShowDialog();
 
-            if (result == true && client.FileNameValidation(dialog.FileName))
+            if (result == true && await client.FileNameValidation(dialog.FileName))
             {
                 
                 MessageBox.Show("File name '" + dialog.FileName + "' was accepted!");
@@ -153,9 +154,11 @@ namespace Paint
 
                 // TODO: send file name, and then shapes.
 
-                await client.SendShapesAsync(shapes);
+                await client.SendShapesAsync(shapes, dialog.FileName);
 
-                MessageBox.Show("Shapes sent to server.");
+                ResponseInfo response = await client.GetResponseFromServer();
+
+                MessageBox.Show("Saving status from server: " + response.IsSuccess + ".");
             }
             else
             {

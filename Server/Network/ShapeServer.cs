@@ -92,21 +92,23 @@ namespace Server.Network
                         ResponseInfo response = TryOpenFile(fileName);
                         ServerLogger.Log(requestInfo.MessageType ,requestInfo.From, response.IsSuccess);
 
-                        _ = SendResponseToClientAsync(response, clientStream);
+                        await SendResponseToClientAsync(response, clientStream);
                         break;
                     }
                 case MessageType.UploadCanvas:
                     {
                         // -the data strcture of Upload request-
-                        // 0-4 -> bytes of Data = file name.
-                        // 4-END -> shapes in Json presentation. 
-                        string fileName = Encoding.ASCII.GetString(requestInfo.Data.Take(4).ToArray());
-                        string shapeData = Encoding.ASCII.GetString(requestInfo.Data.Skip(4).ToArray());
+                        // 0-4      -> (X) file name length.
+                        // 4-X      -> file name.
+                        // X-END    -> shapes in Json presentation. 
+                        int fileNameLength = BitConverter.ToInt32(requestInfo.Data, 0); // 32bit - first 4 bytes.
+                        string fileName = Encoding.ASCII.GetString(requestInfo.Data, 4, fileNameLength);
+                        string shapeData = Encoding.ASCII.GetString(requestInfo.Data.Skip(4 + fileNameLength).ToArray());
 
                         ResponseInfo response = storeShapesInServer(fileName, shapeData);
                         ServerLogger.Log(requestInfo.MessageType, requestInfo.From, response.IsSuccess);
 
-                        _ = SendResponseToClientAsync(response, clientStream);
+                        await SendResponseToClientAsync(response, clientStream);
                         break;
                     }
                 case MessageType.FileNameValidation:
@@ -116,7 +118,7 @@ namespace Server.Network
                         ResponseInfo response = IsFileNameExists(fileName);
                         ServerLogger.Log(requestInfo.MessageType, requestInfo.From, response.IsSuccess);
 
-                        _ = SendResponseToClientAsync(response, clientStream);
+                        await SendResponseToClientAsync(response, clientStream);
                         break;
                     }
                 case MessageType.GetStoredFiles:
@@ -126,12 +128,12 @@ namespace Server.Network
                         response.Message = string.Join(",", getStroedFilesInServer());
                         ServerLogger.Log(requestInfo.MessageType, requestInfo.From, response.IsSuccess);
 
-                        _ = SendResponseToClientAsync(response, clientStream);
+                        await SendResponseToClientAsync(response, clientStream);
                         break;
                     }
                 default:
                     {
-                        ResponseInfo response = new ResponseInfo { IsSuccess = false, Message = "ERROR: Unknow request!" };
+                        ResponseInfo response = new ResponseInfo { IsSuccess = false, Message = "ERROR: Unknown request!" };
                         _ = SendResponseToClientAsync(response, clientStream);
                         break;
                     }
@@ -179,7 +181,6 @@ namespace Server.Network
 
             await clientStream.WriteAsync(lengthBytes, 0, lengthBytes.Length);
             await clientStream.WriteAsync(JsonAsBytes, 0, JsonAsBytes.Length);
-
         }
 
         public ResponseInfo TryOpenFile(string fileName)
