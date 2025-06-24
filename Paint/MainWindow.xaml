@@ -78,7 +78,8 @@
                 <RowDefinition Height="50"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-
+            
+            
             <TextBlock Text="PaintClone"
                        VerticalAlignment="Center"
                        HorizontalAlignment="Center"
@@ -91,6 +92,7 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="40"/>
                 </Grid.RowDefinitions>
 
                 <Button Content="Line"
@@ -123,6 +125,25 @@
                         Width="100"
                         HorizontalAlignment="Center"
                         Grid.Row="2"/>
+
+
+                <StackPanel Orientation="Horizontal" 
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Grid.Row="3">
+                    <Ellipse x:Name="StatusDot" 
+                             Width="10" 
+                             Height="10" 
+                             Fill="Gray" 
+                             Margin="0,0,3,0"/>
+                    
+                    <TextBlock x:Name="StatusText" 
+                               Text="Offline Mode..." 
+                               Foreground="white"
+                               FontSize="10" 
+                               FontStyle="Italic"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
 
             </Grid>
 
@@ -174,8 +195,6 @@
                         MouseMove="Canvas_MouseMove"
                         MouseUp="Canvas_MouseUp"/>
             </Border>
-
-
 
         </Grid>
 

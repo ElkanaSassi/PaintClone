@@ -23,9 +23,9 @@ namespace Client
     public partial class LoadDialog : Window
     {
         public string FileName { get; private set; }
-        private readonly ShapeClient _client;
+        private readonly Network.Client _client;
 
-        public LoadDialog(ShapeClient client)
+        public LoadDialog(Network.Client client)
         {
             InitializeComponent();
             _client = client;
@@ -33,7 +33,7 @@ namespace Client
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            var files = await _client.GetStoredFilesInServer();
+            var files = await _client.GetStoredFilesAsync();
 
             FileListBox.ItemsSource = files.Select(f => System.IO.Path.GetFileName(f));
         }

@@ -7,21 +7,21 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="LoadDialog.xaml.cs">
+    <Compile Update="Dialogs\LoadDialog.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="UploadDialog.xaml.cs">
+    <Compile Update="Dialogs\UploadDialog.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="LoadDialog.xaml">
+    <Page Update="Dialogs\LoadDialog.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="MainWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="UploadDialog.xaml">
+    <Page Update="Dialogs\UploadDialog.xaml">
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>

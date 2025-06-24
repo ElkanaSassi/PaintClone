@@ -9,6 +9,8 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using Client;
 using SharedModels;
+using SharedModels.CommunicationModels;
+using System.Net.Sockets;
 
 namespace Paint
 {
@@ -20,16 +22,30 @@ namespace Paint
         private string selectedShape = "Line";
         private Point startPoint;
         private Shape currentShape;
-        private ShapeClient client;
+        private Client.Network.Client client;
         private Button _selectedShapeButton;
 
         public MainWindow()
         {
             InitializeComponent();
-            client = new ShapeClient(DrawingCanvas);
+            try
+            {
+                client = new Client.Network.Client();
+                SetStatusOnline();
 
-            lineButton.Opacity = 1;
-            _selectedShapeButton = lineButton;
+            }
+            catch (Exception ex) 
+            {
+                Console.WriteLine(ex.Message);
+                SetStatusOfflineMode();
+            }
+            finally
+            {
+                lineButton.Opacity = 1;
+                _selectedShapeButton = lineButton;
+
+                //CloseConnection();
+            }
         }
 
         private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
@@ -121,52 +137,81 @@ namespace Paint
 
         private async void LoadCanvasButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new LoadDialog(client);
-            dialog.Owner = this;
-
-            bool? result = dialog.ShowDialog();
-
-            if (result == true)
+            try
             {
-                await client.sendFlieRequestAsync(dialog.FileName);
+                //client = new Client.Network.Client();
+                //SetStatusOnline();
 
-                _ = client.ReceiveShapesAsync();
+                var dialog = new LoadDialog(client);
+                dialog.Owner = this;
+
+                bool? result = dialog.ShowDialog();
+
+                if (result == true)
+                {
+                    await client.RequestCanvasLoadAsync(dialog.FileName);
+
+                    _ = client.ReceiveAndRenderCanvasAsync(DrawingCanvas);
+                }
+                else
+                {
+                    // LoadDialog was closed
+                }
+                
             }
-            else
-            {
-                // LoadDialog was closed
+            catch (Exception ex) 
+            { 
+                Console.WriteLine(ex.Message);
+                SetStatusOfflineMode();
             }
+            //finally
+            //{
+            //    CloseConnection().Wait();
+            //}
         }
     
         private async void UploadButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new UploadDialog();
-            dialog.Owner = this;  
-
-            bool? result = dialog.ShowDialog();
-
-            if (result == true && await client.FileNameValidation(dialog.FileName))
+            try
             {
+                //client = new Client.Network.Client();
+                //SetStatusOnline();
+
+                var dialog = new UploadDialog();
+                dialog.Owner = this;  
+
+                bool? result = dialog.ShowDialog();
+
+                if (result == true && await client.ValidateFileNameAsync(dialog.FileName))
+                {
                 
-                MessageBox.Show("File name '" + dialog.FileName + "' was accepted!");
+                    MessageBox.Show("File name '" + dialog.FileName + "' was accepted!");
 
-                var shapes = DrawingCanvas.Children
-                .OfType<System.Windows.Shapes.Shape>() // geting the type names
-                .Select(s => ShapeSerializer.ConvertShapeToData(s)) // for each type geting json presentation
-                .ToList();
+                    var shapes = DrawingCanvas.Children
+                    .OfType<System.Windows.Shapes.Shape>() // geting the type names
+                    .Select(s => ShapeService.ConvertWpfShapeToData(s)) // for each type geting json presentation
+                    .ToList();
 
-                // TODO: send file name, and then shapes.
+                    ResponseInfo response = await client.SendShapesAsync(shapes, dialog.FileName);
 
-                await client.SendShapesAsync(shapes, dialog.FileName);
 
-                ResponseInfo response = await client.GetResponseFromServer();
+                    MessageBox.Show("Saving status from server: " + response.IsSuccess + ".");
+                }
+                else
+                {
+                    MessageBox.Show($"File name '" + dialog.FileName + "' was rejected! Try a different name.");
+                }
 
-                MessageBox.Show("Saving status from server: " + response.IsSuccess + ".");
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show($"File name '" + dialog.FileName + "' was rejected! Try a different name.");
+                Console.WriteLine(ex.Message);
+                SetStatusOfflineMode();
             }
+            //finally
+            //{
+            //    CloseConnection();
+            //}
         }
 
         private void LineButton_Click(object sender, RoutedEventArgs e)
@@ -201,5 +246,28 @@ namespace Paint
             _selectedShapeButton.Opacity = 1;
         }
 
+        private void SetStatusOnline()
+        {
+            StatusDot.Fill = new SolidColorBrush(Colors.Green);
+            StatusText.Text = "Server Online";
+        }
+
+        private void SetStatusOfflineMode()
+        {
+            StatusDot.Fill = new SolidColorBrush(Colors.Green);
+            StatusText.Text = "Offline Mode";
+        }
+
+        private void SetStatusOffline()
+        {
+            StatusDot.Fill = new SolidColorBrush(Colors.Red);
+            StatusText.Text = "Server Offline";
+        }
+        //private void CloseConnection()
+        //{
+        //    client.Close();
+        //    client = null;
+        //    SetStatusOffline();
+        //}
     }
 }

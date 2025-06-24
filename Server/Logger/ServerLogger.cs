@@ -1,12 +1,8 @@
-﻿using SharedModels;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SharedModels.CommunicationModels;
 
-namespace Server.Network
+namespace Server.Logger
 {
     public class ServerLogger
     {

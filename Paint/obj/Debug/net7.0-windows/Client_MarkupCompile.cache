@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET7_0;NETCOREAPP
 C:\Users\אלקנה סאסי\PaintClone\Paint\App.xaml
-3-1888136748
+3-1417009024
 
-7-2000201421
+141944097665
 200-961150451
-LoadDialog.xaml;MainWindow.xaml;UploadDialog.xaml;
+Dialogs\LoadDialog.xaml;Dialogs\UploadDialog.xaml;MainWindow.xaml;
 
 False
 
